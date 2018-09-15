@@ -13,7 +13,11 @@ SMTP_PORT   = 993
 filterMail = 'rodrigodp05@gmail.com'
 filterSubject = 'imprimir'
 attachDir = 'printed/'
-command ='lpr -P HLL2310D -o sides=two-sided-long-edge'
+command = 'lpr -P HLL2310D'
+optionFlag = '-o'
+twoSided = 'sides=two-sided-long-edge'
+oneSided = 'sides=one-sided'
+
 
 def from_me(msg):
     # Mail has to be mine and subject has to be filterSubject
@@ -22,6 +26,15 @@ def from_me(msg):
     return False
 
 def print_attachments(msg):
+    # Establish the printing options
+    if len(msg['subject'].split())>=2:
+        # Two ore more words in the subject => one sided
+        options = optionFlag+' '+oneSided
+    else:
+        # Default => two sided
+        options = optionFlag+' '+twoSided
+
+    # Iterate on potential attachments
     for attach in msg.get_payload():
         # We filter body,... from attachments
         name = attach.get_filename()
@@ -32,7 +45,7 @@ def print_attachments(msg):
             fp.write(attach.get_payload(decode=True))
             fp.close()
             # Print file
-            os.system(command+' '+attachDir+name)
+            os.system(command+' '+options+' '+attachDir+name)
             
 def check_email():
     try:
